@@ -6,62 +6,91 @@ import androidx.appcompat.app.AppCompatActivity
 import com.bumptech.glide.Glide
 import ru.vlasov.mvp_mvvm.app
 import ru.vlasov.mvp_mvvm.databinding.ActivityFoxBinding
+import ru.vlasov.mvp_mvvm.utils.observe
 
-class FoxActivity : AppCompatActivity(), FoxContract.View {
+class FoxActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityFoxBinding
-    private lateinit var presenter: FoxContract.Presenter
+    private lateinit var viewModel: FoxViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityFoxBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        presenter = getPresenter()
-        presenter.onAttach(this)
+        viewModel = getViewModel()
 
         binding.buttonGetFox.setOnClickListener {
-            presenter.getFox()
+            viewModel.getFox()
+        }
+
+        viewModel.showLoading.observe { showLoading ->
+            if (showLoading == true) {
+                showLoading()
+            } else {
+                hideLoading()
+            }
+        }
+
+        viewModel.urlImageFox.observe { urlImageFox ->
+            if (urlImageFox == null) {
+                hideFox()
+            } else {
+                showFox(urlImageFox)
+            }
+        }
+
+        viewModel.textError.observe { textError ->
+            if (textError == null) {
+                hideError()
+            } else {
+                showError(textError)
+            }
         }
     }
 
-    private fun getPresenter(): FoxPresenter {
-        val presenter = lastCustomNonConfigurationInstance as? FoxPresenter
-        return presenter ?: FoxPresenter(app.foxRepository)
+    private fun getViewModel(): FoxViewModel {
+        val viewModel = lastCustomNonConfigurationInstance as? FoxViewModel
+        return viewModel ?: FoxViewModel(app.foxRepository)
     }
 
     override fun onRetainCustomNonConfigurationInstance(): Any {
-        return presenter
+        return viewModel
     }
 
-    override fun showLoading() {
+    private fun showLoading() {
         binding.buttonGetFox.isEnabled = false
         binding.progressBar.visibility = View.VISIBLE
     }
 
-    override fun hideLoading() {
+    private fun hideLoading() {
         binding.buttonGetFox.isEnabled = true
         binding.progressBar.visibility = View.INVISIBLE
     }
 
-    override fun showFox(urlImageFox: String) {
+    private fun showFox(urlImageFox: String) {
         binding.imageFox.visibility = View.VISIBLE
         Glide.with(this)
             .load(urlImageFox)
             .into(binding.imageFox)
     }
 
-    override fun hideFox() {
+    private fun hideFox() {
         binding.imageFox.visibility = View.INVISIBLE
     }
 
-    override fun showError(error: String) {
+    private fun showError(error: String) {
         binding.textError.visibility = View.VISIBLE
         binding.textError.text = error
     }
 
-    override fun hideError() {
+    private fun hideError() {
         binding.textError.visibility = View.INVISIBLE
         binding.textError.text = ""
+    }
+
+    override fun onDestroy() {
+        viewModel.removeAllObservers()
+        super.onDestroy()
     }
 }
