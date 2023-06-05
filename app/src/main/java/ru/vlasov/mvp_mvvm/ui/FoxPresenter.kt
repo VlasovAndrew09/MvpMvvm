@@ -21,6 +21,10 @@ class FoxPresenter(
         }
     }
 
+    override fun onDetach() {
+        view = null
+    }
+
     override fun getFox() {
         view?.showLoading()
         view?.hideError()

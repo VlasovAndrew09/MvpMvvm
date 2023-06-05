@@ -13,6 +13,7 @@ interface FoxContract {
 
     interface Presenter {
         fun onAttach(view: View)
+        fun onDetach()
         fun getFox()
     }
 }

@@ -64,4 +64,9 @@ class FoxActivity : AppCompatActivity(), FoxContract.View {
         binding.textError.visibility = View.INVISIBLE
         binding.textError.text = ""
     }
+
+    override fun onDestroy() {
+        presenter.onDetach()
+        super.onDestroy()
+    }
 }
